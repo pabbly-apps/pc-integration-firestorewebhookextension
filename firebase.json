@@ -16,7 +16,5 @@
       ]
     }
   ],
-  "extensions": {
-    "firestore-webhook-connector-pabbly": "."
-  }
+  "extensions": {}
 }
