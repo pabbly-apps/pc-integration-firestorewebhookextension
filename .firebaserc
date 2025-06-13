@@ -6,7 +6,7 @@
   "etags": {
     "prahlad-test": {
       "extensionInstances": {
-        "firestore-webhook-connector-pabbly": "748c2bd92eee138c8d3aaf3877e3517ba9b9e24ca3f0ffdf71ca860b3315ac4a"
+        "firestore-webhook-connector-pabbly": "8f10587d463b7d7bdaacae27542c633584df32b7a6843ce0b5a78694b07926b4"
       }
     }
   }
