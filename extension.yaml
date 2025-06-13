@@ -1,0 +1,204 @@
+# extension.yaml
+# This file defines the configuration and metadata for the Firebase Extension
+
+name: firestore-webhook-connector-pabbly
+version: 0.1.0
+specVersion: v1beta
+
+displayName: Firestore Webhook Connector for Pabbly Connect
+description: >-
+  Automatically send webhook POST requests to Pabbly Connect when Firestore documents are created, updated, or deleted.
+
+icon: pabbly-connect-logo.png
+tags: [firestore, pabbly, webhooks, automation, integrations]
+
+license: Apache-2.0
+sourceUrl: https://github.com/pabbly-apps/pc-integration-firestorewebhookextension
+releaseNotesUrl: https://github.com/pabbly-apps/pc-integration-firestorewebhookextension/blob/main/CHANGELOG.md
+
+author:
+  authorName: Pabbly Connect
+  authorUrl: https://connect.pabbly.com
+  authorEmail: support@pabbly.com
+
+contact:
+  name: Pabbly Connect
+  email: support@pabbly.com
+  url: https://connect.pabbly.com
+
+billingRequired: false
+
+apis:
+  - apiName: firestore.googleapis.com
+    reason: Required to listen to Firestore document changes
+
+roles:
+  - role: datastore.user
+    reason: Required to read Firestore document data for webhook notifications
+
+resources:
+  - name: onCreateWebhook
+    type: firebaseextensions.v1beta.function
+    description: >-
+      Listens for document creation events in Firestore and sends webhook notifications
+    properties:
+      location: ${param:LOCATION}
+      runtime: nodejs20
+      eventTrigger:
+        eventType: providers/cloud.firestore/eventTypes/document.create
+        resource: projects/${PROJECT_ID}/databases/${param:DATABASE_NAME}/documents/${param:CREATE_COLLECTION_PATH}
+
+  - name: onDeleteWebhook
+    type: firebaseextensions.v1beta.function
+    description: >-
+      Listens for document deletion events in Firestore and sends webhook notifications
+    properties:
+      location: ${param:LOCATION}
+      runtime: nodejs20
+      eventTrigger:
+        eventType: providers/cloud.firestore/eventTypes/document.delete
+        resource: projects/${PROJECT_ID}/databases/${param:DATABASE_NAME}/documents/${param:DELETE_COLLECTION_PATH}
+
+  - name: onUpdateWebhook
+    type: firebaseextensions.v1beta.function
+    description: >-
+      Listens for document update events in Firestore and sends webhook notifications
+    properties:
+      location: ${param:LOCATION}
+      runtime: nodejs20
+      eventTrigger:
+        eventType: providers/cloud.firestore/eventTypes/document.update
+        resource: projects/${PROJECT_ID}/databases/${param:DATABASE_NAME}/documents/${param:UPDATE_COLLECTION_PATH}
+
+params:
+  - param: LOCATION
+    label: Cloud Functions location
+    description: >-
+      Where do you want to deploy the functions created for this extension?
+      For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
+    type: select
+    options:
+      - label: Iowa (us-central1)
+        value: us-central1
+      - label: South Carolina (us-east1)
+        value: us-east1
+      - label: Northern Virginia (us-east4)
+        value: us-east4
+      - label: Los Angeles (us-west2)
+        value: us-west2
+      - label: Salt Lake City (us-west3)
+        value: us-west3
+      - label: Las Vegas (us-west4)
+        value: us-west4
+      - label: Belgium (europe-west1)
+        value: europe-west1
+      - label: London (europe-west2)
+        value: europe-west2
+      - label: Frankfurt (europe-west3)
+        value: europe-west3
+      - label: Hong Kong (asia-east2)
+        value: asia-east2
+      - label: Tokyo (asia-northeast1)
+        value: asia-northeast1
+      - label: Mumbai (asia-south1)
+        value: asia-south1
+      - label: Sydney (australia-southeast1)
+        value: australia-southeast1
+    default: us-central1
+    required: true
+    immutable: true
+
+  - param: DATABASE_NAME
+    label: Firestore Database Name
+    description: >-
+      The Firestore database to monitor (e.g., (default), TestDB). 
+      If unsure, use (default).
+    type: string
+    default: "(default)"
+    required: true
+
+  - param: WEBHOOK_URL
+    label: Pabbly Connect Webhook URL
+    description: >-
+      The complete URL where webhook notifications will be sent via HTTP POST.
+      This should be a publicly accessible endpoint that can receive JSON payloads.
+    type: string
+    example: https://connect.pabbly.com/workflow/sendwebhookdata/IjU3NjYwNTZiMDY*****zM1MjZmzMzUxMzE
+    validationRegex: ^https:\/\/(connect\.pabbly\.com|webhook\.site)\/.*
+    validationErrorMessage: Please enter a URL starting with https://connect.pabbly.com or https://webhook.site
+    required: true
+
+  - param: CREATE_COLLECTION_PATH
+    label: Document path for create events
+    description: >-
+      The Firestore document path to monitor for creation events. 
+      Use {collectionId}/{documentId} to monitor all collections and documents,
+      or specify a path like users/{userId} to monitor a specific collection.
+    type: string
+    default: "{collectionId}/{documentId}"
+    example: "users/{userId}"
+    required: true
+
+  - param: UPDATE_COLLECTION_PATH
+    label: Document path for update events
+    description: >-
+      The Firestore document path to monitor for update events.
+      Use {collectionId}/{documentId} to monitor all collections and documents,
+      or specify a path like users/{userId} to monitor a specific collection.
+    type: string
+    default: "{collectionId}/{documentId}"
+    example: "users/{userId}"
+    required: true
+
+  - param: DELETE_COLLECTION_PATH
+    label: Document path for delete events
+    description: >-
+      The Firestore document path to monitor for deletion events.
+      Use {collectionId}/{documentId} to monitor all collections and documents,
+      or specify a path like users/{userId} to monitor a specific collection.
+    type: string
+    default: "{collectionId}/{documentId}"
+    example: "users/{userId}"
+    required: true
+
+  - param: ENABLE_CREATE_WEBHOOK
+    label: Enable create webhooks
+    description: Enable webhook notifications when documents are created
+    type: select
+    options:
+      - label: Yes
+        value: "true"
+      - label: No
+        value: "false"
+    default: "true"
+    required: true
+
+  - param: ENABLE_UPDATE_WEBHOOK
+    label: Enable update webhooks
+    description: Enable webhook notifications when documents are updated
+    type: select
+    options:
+      - label: Yes
+        value: "true"
+      - label: No
+        value: "false"
+    default: "true"
+    required: true
+
+  - param: ENABLE_DELETE_WEBHOOK
+    label: Enable delete webhooks
+    description: Enable webhook notifications when documents are deleted
+    type: select
+    options:
+      - label: Yes
+        value: "true"
+      - label: No
+        value: "false"
+    default: "true"
+    required: true
+
+events:
+  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.complete
+    description: >-
+      Occurs when the extension has been successfully installed and all webhook
+      functions are deployed and ready to monitor Firestore events.  
