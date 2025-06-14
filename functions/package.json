@@ -1,28 +1,67 @@
 {
-  "name": "firestore-webhook-notifier-functions",
+  "name": "firestore-webhook-connector-pabbly",
   "version": "0.1.0",
-  "description": "Cloud Functions for Firestore Webhook Notifier Extension",
+  "description": "Firebase Extension to send webhook notifications for Firestore document changes",
   "main": "index.js",
+  "engines": {
+    "node": "20"
+  },
   "scripts": {
-    "build": "echo 'No build step required'",
     "serve": "firebase emulators:start --only functions",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
+    "lint": "eslint --ext .js .",
     "test": "jest"
   },
-  "engines": {
-    "node": "20"
-  },
   "dependencies": {
-    "axios": "^1.9.0",
-    "firebase-admin": "^12.7.0",
-    "firebase-functions": "^4.9.0"
+    "firebase-admin": "^12.0.0",
+    "firebase-functions": "^5.0.0",
+    "axios": "^1.6.0"
   },
   "devDependencies": {
-    "firebase-functions-test": "^3.1.1",
-    "jest": "^29.7.0"
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0",
+    "jest": "^29.0.0"
   },
-  "private": true
+  "private": true,
+  "keywords": [
+    "firebase",
+    "extension",
+    "firestore",
+    "webhook",
+    "pabbly",
+    "pabbly-connect",
+    "automation",
+    "integration",
+    "real-time",
+    "notifications"
+  ],
+  "author": {
+    "name": "Pabbly Apps",
+    "email": "support@pabbly.com",
+    "url": "https://www.pabbly.com"
+  },
+  "contributors": [
+    {
+      "name": "Rounak Bhardwaj", 
+      "email": "rounak.kumar@pabbly.com",
+      "role": "developer"
+    }
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pabbly-apps/pc-integration-firestorewebhookextension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pabbly-apps/pc-integration-firestorewebhookextension/issues"
+  },
+  "homepage": "https://github.com/pabbly-apps/pc-integration-firestorewebhookextension#readme",
+  "funding": {
+    "type": "individual",
+    "url": "https://www.pabbly.com"
+  }
 }

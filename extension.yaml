@@ -1,6 +1,3 @@
-# extension.yaml
-# This file defines the configuration and metadata for the Firebase Extension
-
 name: firestore-webhook-connector-pabbly
 version: 0.1.0
 specVersion: v1beta
@@ -9,22 +6,14 @@ displayName: Firestore Webhook Connector for Pabbly Connect
 description: >-
   Automatically send webhook POST requests to Pabbly Connect when Firestore documents are created, updated, or deleted.
 
-icon: pabbly-connect-logo.png
-tags: [firestore, pabbly, webhooks, automation, integrations]
-
 license: Apache-2.0
 sourceUrl: https://github.com/pabbly-apps/pc-integration-firestorewebhookextension
 releaseNotesUrl: https://github.com/pabbly-apps/pc-integration-firestorewebhookextension/blob/main/CHANGELOG.md
 
 author:
   authorName: Pabbly Connect
-  authorUrl: https://connect.pabbly.com
-  authorEmail: support@pabbly.com
-
-contact:
-  name: Pabbly Connect
-  email: support@pabbly.com
   url: https://connect.pabbly.com
+  email: support@pabbly.com
 
 billingRequired: false
 
@@ -44,9 +33,6 @@ resources:
     properties:
       location: ${param:LOCATION}
       runtime: nodejs20
-      eventTrigger:
-        eventType: providers/cloud.firestore/eventTypes/document.create
-        resource: projects/${PROJECT_ID}/databases/${param:DATABASE_NAME}/documents/${param:CREATE_COLLECTION_PATH}
 
   - name: onDeleteWebhook
     type: firebaseextensions.v1beta.function
@@ -55,9 +41,6 @@ resources:
     properties:
       location: ${param:LOCATION}
       runtime: nodejs20
-      eventTrigger:
-        eventType: providers/cloud.firestore/eventTypes/document.delete
-        resource: projects/${PROJECT_ID}/databases/${param:DATABASE_NAME}/documents/${param:DELETE_COLLECTION_PATH}
 
   - name: onUpdateWebhook
     type: firebaseextensions.v1beta.function
@@ -66,16 +49,13 @@ resources:
     properties:
       location: ${param:LOCATION}
       runtime: nodejs20
-      eventTrigger:
-        eventType: providers/cloud.firestore/eventTypes/document.update
-        resource: projects/${PROJECT_ID}/databases/${param:DATABASE_NAME}/documents/${param:UPDATE_COLLECTION_PATH}
 
 params:
   - param: LOCATION
     label: Cloud Functions location
     description: >-
       Where do you want to deploy the functions created for this extension?
-      For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
+      For help selecting a location, refer to the location selection guide.
     type: select
     options:
       - label: Iowa (us-central1)
@@ -201,4 +181,54 @@ events:
   - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.complete
     description: >-
       Occurs when the extension has been successfully installed and all webhook
-      functions are deployed and ready to monitor Firestore events.  
+      functions are deployed and ready to monitor Firestore events.
+
+  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.document.created
+    description: >-
+      Occurs when a Firestore document is created and the webhook notification
+      has been successfully sent to the configured Pabbly Connect endpoint.
+
+  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.document.updated
+    description: >-
+      Occurs when a Firestore document is updated and the webhook notification
+      with before/after data has been successfully sent to the configured endpoint.
+
+  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.document.deleted
+    description: >-
+      Occurs when a Firestore document is deleted and the webhook notification
+      has been successfully sent to the configured Pabbly Connect endpoint.
+
+  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.webhook.success
+    description: >-
+      Occurs when a webhook request is successfully delivered to the target URL
+      with a 2xx HTTP response status.
+
+  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.webhook.failed
+    description: >-
+      Occurs when a webhook request fails to be delivered due to network errors,
+      timeout, or non-2xx HTTP response status.
+
+  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.webhook.invalid_url
+    description: >-
+      Occurs when the configured webhook URL is invalid or not from an allowed
+      domain (connect.pabbly.com or webhook.site).
+
+  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.configuration.updated
+    description: >-
+      Occurs when the extension configuration is updated, such as changing
+      webhook URLs, collection paths, or enabling/disabling event types.
+
+  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.error.processing
+    description: >-
+      Occurs when there is an error processing a Firestore event, such as
+      data transformation failures or unexpected function errors.
+
+  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.function.timeout
+    description: >-
+      Occurs when a webhook function times out while processing a Firestore
+      event or sending the webhook request.
+
+  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.rate_limit.exceeded
+    description: >-
+      Occurs when the webhook endpoint returns rate limiting errors or when
+      the function encounters rate limits from the target service.
