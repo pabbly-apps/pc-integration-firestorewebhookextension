@@ -1,4 +1,4 @@
-name: firestore-webhook-connector-pabbly
+name: firestore-pabbly-connector
 version: 0.1.0
 specVersion: v1beta
 
@@ -185,57 +185,57 @@ params:
     required: true
 
 events:
-  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.complete
+  - type: firebase.extensions.firestore-pabbly-connector.v1.complete
     description: >-
       Occurs when the extension has been successfully installed and all webhook
       functions are deployed and ready to monitor Firestore events.
 
-  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.document.created
+  - type: firebase.extensions.firestore-pabbly-connector.v1.document.created
     description: >-
       Occurs when a Firestore document is created and the webhook notification
       has been successfully sent to the configured Pabbly Connect endpoint.
 
-  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.document.updated
+  - type: firebase.extensions.firestore-pabbly-connector.v1.document.updated
     description: >-
       Occurs when a Firestore document is updated and the webhook notification
       with before/after data has been successfully sent to the configured endpoint.
 
-  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.document.deleted
+  - type: firebase.extensions.firestore-pabbly-connector.v1.document.deleted
     description: >-
       Occurs when a Firestore document is deleted and the webhook notification
       has been successfully sent to the configured Pabbly Connect endpoint.
 
-  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.webhook.success
+  - type: firebase.extensions.firestore-pabbly-connector.v1.webhook.success
     description: >-
       Occurs when a webhook request is successfully delivered to the target URL
       with a 2xx HTTP response status.
 
-  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.webhook.failed
+  - type: firebase.extensions.firestore-pabbly-connector.v1.webhook.failed
     description: >-
       Occurs when a webhook request fails to be delivered due to network errors,
       timeout, or non-2xx HTTP response status.
 
-  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.webhook.invalid_url
+  - type: firebase.extensions.firestore-pabbly-connector.v1.webhook.invalid_url
     description: >-
       Occurs when the configured webhook URL is invalid or not from an allowed
       domain (connect.pabbly.com or webhook.site).
 
-  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.configuration.updated
+  - type: firebase.extensions.firestore-pabbly-connector.v1.configuration.updated
     description: >-
       Occurs when the extension configuration is updated, such as changing
       webhook URLs, collection paths, or enabling/disabling event types.
 
-  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.error.processing
+  - type: firebase.extensions.firestore-pabbly-connector.v1.error.processing
     description: >-
       Occurs when there is an error processing a Firestore event, such as
       data transformation failures or unexpected function errors.
 
-  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.function.timeout
+  - type: firebase.extensions.firestore-pabbly-connector.v1.function.timeout
     description: >-
       Occurs when a webhook function times out while processing a Firestore
       event or sending the webhook request.
 
-  - type: firebase.extensions.firestore-webhook-connector-pabbly.v1.rate_limit.exceeded
+  - type: firebase.extensions.firestore-pabbly-connector.v1.rate_limit.exceeded
     description: >-
       Occurs when the webhook endpoint returns rate limiting errors or when
       the function encounters rate limits from the target service.
