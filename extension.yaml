@@ -1,5 +1,5 @@
 name: firestore-pabbly-connector
-version: 0.1.0-rc.0
+version: 0.1.0
 specVersion: v1beta
 
 displayName: Firestore Webhook Connector for Pabbly Connect
