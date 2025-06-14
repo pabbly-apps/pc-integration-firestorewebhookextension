@@ -2,15 +2,17 @@
  * Firebase Cloud Functions (v2) for sending webhook notifications
  * on Firestore document creation, update, and deletion events.
  * 
- * This implementation uses Firestore triggers to capture document lifecycle events 
- * and sends structured JSON payloads via HTTP POST to a predefined webhook URL.
+ * This implementation uses Firestore triggers to capture document lifecycle events and sends structured JSON payloads via HTTP POST to a predefined webhook URL.
+ * 
+ * The code is designed to be modular, configurable via environment variables, and production-ready with robust logging and error handling.
  */
 
+// --- Import necessary Firebase Functions modules and external libraries ---
 const logger = require("firebase-functions/logger");
 const { onDocumentCreated, onDocumentDeleted, onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const axios = require("axios");
 
-// --- Load Environment Variables with Fallbacks ---
+// --- Load Environment Variables with Fallbacks ---    
 const WEBHOOK_URL = process.env.WEBHOOK_URL || "";
 const DEFAULT_WILDCARD_PATH = "{collectionId}/{documentId}";
 const CREATE_COLLECTION_PATH = process.env.CREATE_COLLECTION_PATH || DEFAULT_WILDCARD_PATH;
@@ -55,126 +57,66 @@ function isValidWebhookUrl(url) {
  */
 function transformFirestoreEvent(eventType, event) {
     try {
-        // Extract document path from the event
-        const documentPath = event.document || "";
-        const pathParts = documentPath.split('/');
-        const documentId = pathParts[pathParts.length - 1] || "unknown";
-        const collectionId = pathParts[pathParts.length - 2] || "unknown";
-        
-        // Create a clean path without the projects prefix
-        const cleanPath = documentPath.replace(/^projects\/[^\/]+\/databases\/[^\/]+\/documents\//, '');
-        
-        const timestamp = new Date().toISOString();
+        const fullPath = event.value?.name || event.oldValue?.name || "";
+        const path = fullPath.split("/documents/")[1] || "unknown";
+        const segments = path.split("/");
+        const id = segments[segments.length - 1];
+        const timestamp = event.value?.updateTime || event.oldValue?.updateTime || new Date().toISOString();
 
-        /**
-         * Parse Firestore document data
-         * @param {object} data - Document data from Firestore
-         * @param {string} docId - Document ID
-         * @returns {object} Parsed document data
-         */
-        const parseDocumentData = (data, docId) => {
-            if (!data) return { id: docId };
-            
-            // If data is already in simple format, use it directly
-            if (typeof data === 'object' && !data._fieldsProto) {
-                return { id: docId, ...data };
-            }
-            
-            // Handle Firestore's internal format
+        const parseFields = (fields = {}, docId) => {
             const result = { id: docId };
-            const fields = data._fieldsProto || data.fields || data;
-            
-            for (const [key, value] of Object.entries(fields)) {
-                if (value && typeof value === 'object') {
-                    // Handle different Firestore field types
-                    if (value.stringValue !== undefined) {
-                        result[key] = value.stringValue;
-                    } else if (value.integerValue !== undefined) {
-                        result[key] = parseInt(value.integerValue);
-                    } else if (value.doubleValue !== undefined) {
-                        result[key] = parseFloat(value.doubleValue);
-                    } else if (value.booleanValue !== undefined) {
-                        result[key] = value.booleanValue;
-                    } else if (value.timestampValue !== undefined) {
-                        result[key] = value.timestampValue;
-                    } else if (value.nullValue !== undefined) {
-                        result[key] = null;
-                    } else if (value.arrayValue !== undefined) {
-                        result[key] = value.arrayValue.values || [];
-                    } else if (value.mapValue !== undefined) {
-                        result[key] = value.mapValue.fields || {};
-                    } else {
-                        // Fallback for unknown types
-                        const valueKeys = Object.keys(value);
-                        result[key] = valueKeys.length > 0 ? value[valueKeys[0]] : value;
-                    }
+            for (const [key, val] of Object.entries(fields)) {
+                if (val && typeof val === 'object') {
+                    const type = Object.keys(val)[0];
+                    result[key] = val[type];
                 } else {
-                    result[key] = value;
+                    result[key] = val;
                 }
             }
-            
             return result;
         };
 
-        // Handle different event types
+        // Handle document update diff structure
         if (eventType === "document_updated") {
-            const beforeData = parseDocumentData(event.oldValue, documentId);
-            const afterData = parseDocumentData(event.value, documentId);
+            const before = parseFields(event.oldValue?.fields || {}, id);
+            const after = parseFields(event.value?.fields || {}, id);
 
-            // Calculate changes
             const changes = {};
-            const allKeys = new Set([...Object.keys(beforeData), ...Object.keys(afterData)]);
-            
-            for (const key of allKeys) {
-                if (key === 'id') continue; // Skip ID field for changes
-                
-                const beforeValue = beforeData[key];
-                const afterValue = afterData[key];
-                
-                if (JSON.stringify(beforeValue) !== JSON.stringify(afterValue)) {
-                    changes[key] = {
-                        before: beforeValue,
-                        after: afterValue
-                    };
+            for (const key of new Set([...Object.keys(before), ...Object.keys(after)])) {
+                if (JSON.stringify(before[key]) !== JSON.stringify(after[key])) {
+                    changes[key] = after[key];
                 }
             }
 
             return {
                 eventType,
-                documentPath: cleanPath,
-                documentId,
-                collectionId,
+                documentPath: path,
                 timestamp,
-                before: beforeData,
-                after: afterData,
+                before,
+                after,
                 changes
             };
         }
 
-        // Handle create and delete events
-        let documentData = {};
-        if (eventType === "document_created" && event.value) {
-            documentData = parseDocumentData(event.value, documentId);
-        } else if (eventType === "document_deleted" && event.oldValue) {
-            documentData = parseDocumentData(event.oldValue, documentId);
-        }
+        // Handle create or delete events
+        const fields = eventType === "document_created"
+            ? parseFields(event.value?.fields || {}, id)
+            : parseFields(event.oldValue?.fields || {}, id);
 
         return {
             eventType,
-            documentPath: cleanPath,
-            documentId,
-            collectionId,
+            documentPath: path,
             timestamp,
-            data: documentData
+            data: fields
         };
-        
     } catch (error) {
         logger.error('Error transforming Firestore event:', error);
         return {
             eventType,
+            documentPath: "unknown",
+            timestamp: new Date().toISOString(),
             error: 'Failed to transform event data',
-            errorMessage: error.message,
-            timestamp: new Date().toISOString()
+            errorMessage: error.message
         };
     }
 }
@@ -201,31 +143,23 @@ async function sendWebhook(eventType, eventPayload) {
     
     try {
         const response = await axios.post(WEBHOOK_URL, eventPayload, {
-            timeout: 15000, // 15 second timeout
+            timeout: 10000, // Increased timeout to 10 seconds
             headers: { 
                 'Content-Type': 'application/json',
-                'User-Agent': 'Firebase-Extension-Pabbly-Webhook/1.0.0',
-                'X-Firebase-Extension': 'firestore-webhook-connector-pabbly'
+                'User-Agent': 'Firebase-Extension-Pabbly-Webhook/1.0.0'
             },
             maxContentLength: Infinity,
             maxBodyLength: Infinity
         });
         
         logger.info(`Webhook sent successfully for ${eventType}: Status ${response.status}`);
-        logger.debug(`Response data:`, response.data);
+        logger.debug(`Sent Payload:`, JSON.stringify(eventPayload, null, 2));
         
     } catch (error) {
         if (error.response) {
-            logger.error(`Webhook server responded with an error for ${eventType}:`, {
-                status: error.response.status,
-                statusText: error.response.statusText,
-                data: error.response.data
-            });
+            logger.error(`Webhook server responded with an error for ${eventType} (Status: ${error.response.status}):`, error.response.data);
         } else if (error.request) {
-            logger.error(`No response received from webhook server for ${eventType}:`, {
-                message: error.message,
-                code: error.code
-            });
+            logger.error(`No response received from webhook server for ${eventType} (Network error/Timeout)`);
         } else {
             logger.error(`Error setting up webhook request for ${eventType}:`, error.message);
         }
@@ -245,15 +179,11 @@ exports.onCreateWebhook = onDocumentCreated({
     database: DATABASE_NAME,
     maxInstances: 10,
     memory: "256MiB",
-    timeoutSeconds: 60,
-    minInstances: 0
+    timeoutSeconds: 60
 }, async (event) => {
-    logger.info("onCreateWebhook function triggered", {
-        document: event.document,
-        eventId: event.eventId,
-        eventTime: event.eventTime
-    });
-    
+    logger.info("onCreateWebhook function triggered.");
+    logger.info("Full event object:", JSON.stringify(event, null, 2));
+
     if (!ENABLE_CREATE_WEBHOOK) {
         logger.info("Document creation webhook is disabled. Skipping execution.");
         return null;
@@ -280,15 +210,11 @@ exports.onUpdateWebhook = onDocumentUpdated({
     database: DATABASE_NAME,
     maxInstances: 10,
     memory: "256MiB",
-    timeoutSeconds: 60,
-    minInstances: 0
+    timeoutSeconds: 60
 }, async (event) => {
-    logger.info("onUpdateWebhook function triggered", {
-        document: event.document,
-        eventId: event.eventId,
-        eventTime: event.eventTime
-    });
-    
+    logger.info("onUpdateWebhook function triggered.");
+    logger.info("Full event object:", JSON.stringify(event, null, 2));
+
     if (!ENABLE_UPDATE_WEBHOOK) {
         logger.info("Document update webhook is disabled. Skipping execution.");
         return null;
@@ -315,15 +241,11 @@ exports.onDeleteWebhook = onDocumentDeleted({
     database: DATABASE_NAME,
     maxInstances: 10,
     memory: "256MiB",
-    timeoutSeconds: 60,
-    minInstances: 0
+    timeoutSeconds: 60
 }, async (event) => {
-    logger.info("onDeleteWebhook function triggered", {
-        document: event.document,
-        eventId: event.eventId,
-        eventTime: event.eventTime
-    });
-    
+    logger.info("onDeleteWebhook function triggered.");
+    logger.info("Full event object:", JSON.stringify(event, null, 2));
+
     if (!ENABLE_DELETE_WEBHOOK) {
         logger.info("Document deletion webhook is disabled. Skipping execution.");
         return null;

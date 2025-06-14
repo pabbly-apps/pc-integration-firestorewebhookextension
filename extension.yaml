@@ -21,10 +21,6 @@ apis:
   - apiName: firestore.googleapis.com
     reason: Required to listen to Firestore document changes
 
-roles:
-  - role: datastore.user
-    reason: Required to read Firestore document data for webhook notifications
-
 resources:
   - name: onCreateWebhook
     type: firebaseextensions.v1beta.function
@@ -33,14 +29,9 @@ resources:
     properties:
       location: ${param:LOCATION}
       runtime: nodejs20
-
-  - name: onDeleteWebhook
-    type: firebaseextensions.v1beta.function
-    description: >-
-      Listens for document deletion events in Firestore and sends webhook notifications
-    properties:
-      location: ${param:LOCATION}
-      runtime: nodejs20
+      eventTrigger:
+        eventType: providers/cloud.firestore/eventTypes/document.create
+        resource: projects/${PROJECT_ID}/databases/${param:DATABASE_NAME}/documents/${param:CREATE_COLLECTION_PATH}
 
   - name: onUpdateWebhook
     type: firebaseextensions.v1beta.function
@@ -49,6 +40,20 @@ resources:
     properties:
       location: ${param:LOCATION}
       runtime: nodejs20
+      eventTrigger:
+        eventType: providers/cloud.firestore/eventTypes/document.update
+        resource: projects/${PROJECT_ID}/databases/${param:DATABASE_NAME}/documents/${param:UPDATE_COLLECTION_PATH}
+
+  - name: onDeleteWebhook
+    type: firebaseextensions.v1beta.function
+    description: >-
+      Listens for document deletion events in Firestore and sends webhook notifications
+    properties:
+      location: ${param:LOCATION}
+      runtime: nodejs20
+      eventTrigger:
+        eventType: providers/cloud.firestore/eventTypes/document.delete
+        resource: projects/${PROJECT_ID}/databases/${param:DATABASE_NAME}/documents/${param:DELETE_COLLECTION_PATH}
 
 params:
   - param: LOCATION
