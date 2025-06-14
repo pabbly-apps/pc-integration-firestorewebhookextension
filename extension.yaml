@@ -6,6 +6,8 @@ displayName: Firestore Webhook Connector for Pabbly Connect
 description: >-
   Automatically send webhook POST requests to Pabbly Connect when Firestore documents are created, updated, or deleted.
 
+icon: icon.png
+
 license: Apache-2.0
 sourceUrl: https://github.com/pabbly-apps/pc-integration-firestorewebhookextension
 releaseNotesUrl: https://github.com/pabbly-apps/pc-integration-firestorewebhookextension/blob/main/CHANGELOG.md
