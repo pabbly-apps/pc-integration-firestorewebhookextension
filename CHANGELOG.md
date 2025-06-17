@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2 - 2025-06-17
+- Declared `https://connect.pabbly.com` and `https://webhook.site` in `externalServices` to meet Firebase review requirements.
+- Marked `WEBHOOK_URL` as a `secret` with domain validation.
+- Added required IAM roles: `roles/datastore.user` and `roles/cloudfunctions.invoker`.
+- Bumped version to `0.1.2`.
+
 ## 0.1.1 - First stable release
 - Marked `0.1.1` as the first stable release.
 - Same feature set as `0.1.0-beta`, no code changes.
