@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3 - Fixed external service metadata validation
+- Added `pricingUri` field to external services (`Pabbly Connect Webhook` and `Webhook.site`) to meet Firebase Extension publishing requirements.
+- No functional/code changes.
+
 ## 0.1.2 - 2025-06-17
 - Declared `https://connect.pabbly.com` and `https://webhook.site` in `externalServices` to meet Firebase review requirements.
 - Marked `WEBHOOK_URL` as a `secret` with domain validation.
