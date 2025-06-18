@@ -1,5 +1,5 @@
 name: firestore-pabbly-connector
-version: 0.1.3
+version: 0.1.4
 specVersion: v1beta
 
 displayName: Firestore Webhook Connector for Pabbly Connect
@@ -27,7 +27,7 @@ externalServices:
   - name: Pabbly Connect Webhook
     url: https://connect.pabbly.com
     description: Sends webhook POST requests to this external service.
-    pricingUri: https://www.pabbly.com/connect/pricing/
+    pricingUri: https://www.pabbly.com/connect/inr/
 
   - name: Webhook.site
     url: https://webhook.site
@@ -35,10 +35,12 @@ externalServices:
     pricingUri: https://webhook.site
 
 roles:
-  - role: roles/datastore.user
+  - role: datastore.user
     reason: Allows the extension to read and write Firestore documents.
-  - role: roles/cloudfunctions.invoker
+  - role: cloudfunctions.invoker
     reason: Allows the extension to invoke Cloud Functions.
+  - role: secretmanager.secretAccessor
+    reason: Allows the extension to access webhook secrets stored in Secret Manager.
 
 resources:
   - name: onCreateWebhook

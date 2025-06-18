@@ -15,7 +15,5 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
-  "extensions": {
-    "firestore-pabbly-connector": "./"
-  }
+  "extensions": {}
 }

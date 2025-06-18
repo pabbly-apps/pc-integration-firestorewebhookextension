@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.4 - Fixed IAM role definitions and updated pricing URL
+- Fixed invalid IAM role references by removing the `roles/roles/` prefix.
+- Switched to short-form role names (`datastore.user`, `cloudfunctions.invoker`, `secretmanager.secretAccessor`) to meet Firebase validation requirements.
+- Added `secretmanager.secretAccessor` role to enable access to stored webhook secrets.
+- Updated `pricingUri` to point to the official Pabbly Connect pricing page.
+- No functional/code changes.
+
 ## 0.1.3 - Fixed external service metadata validation
 - Added `pricingUri` field to external services (`Pabbly Connect Webhook` and `Webhook.site`) to meet Firebase Extension publishing requirements.
 - No functional/code changes.
